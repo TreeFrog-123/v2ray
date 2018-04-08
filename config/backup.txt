@@ -41,5 +41,7 @@ false
 false
 ---- 伪装的路径 -----
 233blog
+---- alterId -----
+233
 ---- 伪装的网址 -----
 https://liyafly.com

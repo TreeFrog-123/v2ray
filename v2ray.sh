@@ -10,7 +10,7 @@ none='\e[0m'
 # Root
 [[ $(id -u) != 0 ]] && echo -e " 哎呀……请使用 ${red}root ${none}用户运行 ${yellow}~(^_^) ${none}" && exit 1
 
-_version="v1.52"
+_version="v1.68"
 
 cmd="apt-get"
 
@@ -44,7 +44,7 @@ fi
 
 backup="/etc/v2ray/233blog_v2ray_backup.txt"
 
-if [[ -f /usr/bin/v2ray/v2ray && -f /etc/v2ray/config.json ]] && [[ -f $backup ]]; then
+if [[ -f /usr/bin/v2ray/v2ray && -f /etc/v2ray/config.json ]] && [[ -f $backup && -d /etc/v2ray/233boy/v2ray ]]; then
 
 	v2ray_transport=$(sed -n '17p' $backup)
 	v2ray_port=$(sed -n '19p' $backup)
@@ -60,6 +60,7 @@ if [[ -f /usr/bin/v2ray/v2ray && -f /etc/v2ray/config.json ]] && [[ -f $backup ]
 	blocked_ad_status=$(sed -n '39p' $backup)
 	ws_path_status=$(sed -n '41p' $backup)
 	ws_path=$(sed -n '43p' $backup)
+	alterId=$(sed -n '45p' $backup)
 
 	v2ray_ver=$(/usr/bin/v2ray/v2ray -version | head -n 1 | cut -d " " -f2)
 
@@ -95,6 +96,11 @@ if [ $v2ray_pid ]; then
 	v2ray_status="$green正在运行$none"
 else
 	v2ray_status="$red未在运行$none"
+fi
+if [[ $v2ray_transport == "4" && $caddy_installed ]] && [[ $caddy_pid ]]; then
+	caddy_run_status="$green正在运行$none"
+else
+	caddy_run_status="$red未在运行$none"
 fi
 
 transport=(
@@ -182,7 +188,7 @@ create_vmess_URL_config() {
 			"add": "${domain}",
 			"port": "443",
 			"id": "${v2ray_id}",
-			"aid": "233",
+			"aid": "${alterId}",
 			"net": "ws",
 			"type": "none",
 			"host": "${host}",
@@ -197,7 +203,7 @@ create_vmess_URL_config() {
 			"add": "${ip}",
 			"port": "${v2ray_port}",
 			"id": "${v2ray_id}",
-			"aid": "233",
+			"aid": "${alterId}",
 			"net": "${net}",
 			"type": "${header}",
 			"host": "${host}",
@@ -225,7 +231,7 @@ view_v2ray_config_info() {
 		echo
 		echo -e "$yellow 用户ID (User ID / UUID) = $cyan${v2ray_id}$none"
 		echo
-		echo -e "$yellow 额外ID (Alter Id) = ${cyan}233${none}"
+		echo -e "$yellow 额外ID (Alter Id) = ${cyan}${alterId}${none}"
 		echo
 		echo -e "$yellow 传输协议 (Network) = ${cyan}${network}$none"
 		echo
@@ -252,7 +258,7 @@ view_v2ray_config_info() {
 		echo
 		echo -e "$yellow 用户ID (User ID / UUID) = $cyan${v2ray_id}$none"
 		echo
-		echo -e "$yellow 额外ID (Alter Id) = ${cyan}233${none}"
+		echo -e "$yellow 额外ID (Alter Id) = ${cyan}${alterId}${none}"
 		echo
 		echo -e "$yellow 传输协议 (Network) = ${cyan}${network}$none"
 		echo
@@ -477,17 +483,18 @@ shadowsocks_config() {
 	done
 }
 shadowsocks_port_config() {
+	local random=$(shuf -i20001-65535 -n1)
 	while :; do
 		echo -e "请输入 "$yellow"Shadowsocks"$none" 端口 ["$magenta"1-65535"$none"]，不能和 "$yellow"V2ray"$none" 端口相同"
-		read -p "$(echo -e "(默认端口: ${cyan}6666$none):") " new_ssport
-		[ -z "$new_ssport" ] && new_ssport="6666"
+		read -p "$(echo -e "(默认端口: ${cyan}${random}$none):") " new_ssport
+		[ -z "$new_ssport" ] && new_ssport=$random
 		case $new_ssport in
 		$v2ray_port)
 			echo
 			echo -e " 不能和$cyan V2Ray 端口 $none一毛一样...."
 			error
 			;;
-		[1-9] | [1-9][0-9] | [1-9][0-9][0-9] | [1-9][0-9][0-9][0-9] | [1-5][0-9][0-9][0-9][0-9] | [1-6][0-5][0-5][0-3][0-5])
+		[1-9] | [1-9][0-9] | [1-9][0-9][0-9] | [1-9][0-9][0-9][0-9] | [1-5][0-9][0-9][0-9][0-9] | 6[0-4][0-9][0-9][0-9] | 65[0-4][0-9][0-9] | 655[0-3][0-5])
 			if [[ $v2ray_transport == "4" && $new_ssport == "80" ]] || [[ $v2ray_transport == "4" && $new_ssport == "443" ]]; then
 				echo
 				echo -e "由于你选择了 "$green"WebSocket + TLS"$none" 传输协议."
@@ -596,7 +603,7 @@ change_shadowsocks_port() {
 			echo -e " 不能和$cyan V2Ray 端口 $none一毛一样...."
 			error
 			;;
-		[1-9] | [1-9][0-9] | [1-9][0-9][0-9] | [1-9][0-9][0-9][0-9] | [1-5][0-9][0-9][0-9][0-9] | [1-6][0-5][0-5][0-3][0-5])
+		[1-9] | [1-9][0-9] | [1-9][0-9][0-9] | [1-9][0-9][0-9][0-9] | [1-5][0-9][0-9][0-9][0-9] | 6[0-4][0-9][0-9][0-9] | 65[0-4][0-9][0-9] | 655[0-3][0-5])
 			if [[ $v2ray_transport == "4" && $new_ssport == "80" ]] || [[ $v2ray_transport == "4" && $new_ssport == "443" ]]; then
 				echo
 				echo -e "由于你选择了 "$green"WebSocket + TLS"$none" 传输协议."
@@ -680,7 +687,7 @@ change_shadowsocks_password() {
 change_shadowsocks_ciphers() {
 	echo
 	while :; do
-		echo -e "请选择 "$yellow"Shadowsocks"$none" 加密协议 [${magenta}1-8$none]"
+		echo -e "请选择 "$yellow"Shadowsocks"$none" 加密协议 [${magenta}1-${#ciphers[*]}$none]"
 		for ((i = 1; i <= ${#ciphers[*]}; i++)); do
 			ciphers_show="${ciphers[$i - 1]}"
 			echo
@@ -817,6 +824,10 @@ change_v2ray_config() {
 				blocked_hosts
 				break
 				;;
+			[Dd] | [Aa][Ii] | 233 | 233[Bb][Ll][Oo][Gg] | 233[Bb][Ll][Oo][Gg].[Cc][Oo][Mm] | 233[Bb][Oo][Yy] | [Aa][Ll][Tt][Ee][Rr][Ii][Dd])
+				change_v2ray_alterId
+				break
+				;;
 			*)
 				error
 				;;
@@ -844,7 +855,7 @@ change_v2ray_port() {
 				echo " 哎呀...跟当前端口一毛一样呀...修改个鸡鸡哦"
 				error
 				;;
-			[1-9] | [1-9][0-9] | [1-9][0-9][0-9] | [1-9][0-9][0-9][0-9] | [1-5][0-9][0-9][0-9][0-9] | [1-6][0-5][0-5][0-3][0-5])
+			[1-9] | [1-9][0-9] | [1-9][0-9][0-9] | [1-9][0-9][0-9][0-9] | [1-5][0-9][0-9][0-9][0-9] | 6[0-4][0-9][0-9][0-9] | 65[0-4][0-9][0-9] | 655[0-3][0-5])
 				if [[ $shadowsocks ]] && [[ $v2ray_port_opt == $ssport ]]; then
 					echo
 					echo -e " ...不能跟$cyan Shadowsocks 端口 $none一毛一样..."
@@ -923,7 +934,7 @@ change_v2ray_transport_ask() {
 change_v2ray_transport() {
 	echo
 	while :; do
-		echo -e "请选择 "$yellow"V2Ray"$none" 传输协议 [${magenta}1-15$none]"
+		echo -e "请选择 "$yellow"V2Ray"$none" 传输协议 [${magenta}1-${#transport[*]}$none]"
 		echo
 		for ((i = 1; i <= ${#transport[*]}; i++)); do
 			Stream="${transport[$i - 1]}"
@@ -1295,12 +1306,19 @@ proxy_site_config() {
 }
 
 install_caddy() {
+	if [[ $cmd == "yum" ]]; then
+		[[ $(pgrep "httpd") ]] && systemctl stop httpd
+		[[ $(command -v httpd) ]] && yum remove httpd -y
+	else
+		[[ $(pgrep "apache2") ]] && service apache2 stop
+		[[ $(command -v apache2) ]] && apt-get remove apache2* -y
+	fi
 	local caddy_tmp="/tmp/install_caddy/"
 	local caddy_tmp_file="/tmp/install_caddy/caddy.tar.gz"
 	if [[ $sys_bit == "i386" || $sys_bit == "i686" ]]; then
-		local caddy_download_link="https://caddyserver.com/download/linux/386"
+		local caddy_download_link="https://caddyserver.com/download/linux/386?license=personal"
 	elif [[ $sys_bit == "x86_64" ]]; then
-		local caddy_download_link="https://caddyserver.com/download/linux/amd64"
+		local caddy_download_link="https://caddyserver.com/download/linux/amd64?license=personal"
 	else
 		echo -e "$red 自动安装 Caddy 失败！不支持你的系统。$none" && exit 1
 	fi
@@ -1318,18 +1336,26 @@ install_caddy() {
 		echo -e "$red 安装 Caddy 出错！" && exit 1
 	fi
 
+	setcap CAP_NET_BIND_SERVICE=+eip /usr/local/bin/caddy
+
 	if [[ $systemd ]]; then
 		cp -f ${caddy_tmp}init/linux-systemd/caddy.service /lib/systemd/system/
-		sed -i "s/www-data/root/g" /lib/systemd/system/caddy.service
+		# sed -i "s/www-data/root/g" /lib/systemd/system/caddy.service
 		systemctl enable caddy
 	else
 		cp -f ${caddy_tmp}init/linux-sysvinit/caddy /etc/init.d/caddy
-		sed -i "s/www-data/root/g" /etc/init.d/caddy
+		# sed -i "s/www-data/root/g" /etc/init.d/caddy
 		chmod +x /etc/init.d/caddy
 		update-rc.d -f caddy defaults
 	fi
 
 	mkdir -p /etc/ssl/caddy
+
+	if [ -z "$(grep www-data /etc/passwd)" ]; then
+		useradd -M -s /usr/sbin/nologin www-data
+	fi
+	chown -R www-data.www-data /etc/ssl/caddy
+
 	mkdir -p /etc/caddy/
 	rm -rf $caddy_tmp
 
@@ -1377,7 +1403,7 @@ v2ray_dynamic_port_start() {
 			echo " 不能和 V2Ray 端口一毛一样...."
 			error
 			;;
-		[1-9] | [1-9][0-9] | [1-9][0-9][0-9] | [1-9][0-9][0-9][0-9] | [1-5][0-9][0-9][0-9][0-9] | [1-6][0-5][0-5][0-3][0-5])
+		[1-9] | [1-9][0-9] | [1-9][0-9][0-9] | [1-9][0-9][0-9][0-9] | [1-5][0-9][0-9][0-9][0-9] | 6[0-4][0-9][0-9][0-9] | 65[0-4][0-9][0-9] | 655[0-3][0-5])
 			if [[ $shadowsocks ]] && [[ $v2ray_dynamic_port_start_input == $ssport ]]; then
 				echo
 				echo " 不能和 Shadowsocks 端口一毛一样...."
@@ -1415,7 +1441,7 @@ v2ray_dynamic_port_end() {
 		read -p "$(echo -e "(默认结束端口: ${cyan}20000$none):")" v2ray_dynamic_port_end_input
 		[ -z $v2ray_dynamic_port_end_input ] && v2ray_dynamic_port_end_input=20000
 		case $v2ray_dynamic_port_end_input in
-		[1-9] | [1-9][0-9] | [1-9][0-9][0-9] | [1-9][0-9][0-9][0-9] | [1-5][0-9][0-9][0-9][0-9] | [1-6][0-5][0-5][0-3][0-5])
+		[1-9] | [1-9][0-9] | [1-9][0-9][0-9] | [1-9][0-9][0-9][0-9] | [1-5][0-9][0-9][0-9][0-9] | 6[0-4][0-9][0-9][0-9] | 65[0-4][0-9][0-9] | 655[0-3][0-5])
 
 			if [[ $v2ray_dynamic_port_end_input -le $v2ray_dynamic_port_start_input ]]; then
 				echo
@@ -1506,7 +1532,7 @@ change_v2ray_dynamic_port_start() {
 			echo " 不能和 V2Ray 端口一毛一样...."
 			error
 			;;
-		[1-9] | [1-9][0-9] | [1-9][0-9][0-9] | [1-9][0-9][0-9][0-9] | [1-5][0-9][0-9][0-9][0-9] | [1-6][0-5][0-5][0-3][0-5])
+		[1-9] | [1-9][0-9] | [1-9][0-9][0-9] | [1-9][0-9][0-9][0-9] | [1-5][0-9][0-9][0-9][0-9] | 6[0-4][0-9][0-9][0-9] | 65[0-4][0-9][0-9] | 655[0-3][0-5])
 			if [[ $shadowsocks ]] && [[ $v2ray_dynamic_port_start_input == $ssport ]]; then
 				echo
 				echo " 不能和 Shadowsocks 端口一毛一样...."
@@ -1544,7 +1570,7 @@ change_v2ray_dynamic_port_end() {
 		read -p "$(echo -e "(当前动态结束端口: ${cyan}$v2ray_dynamicPort_end$none):")" v2ray_dynamic_port_end_input
 		[ -z $v2ray_dynamic_port_end_input ] && error && continue
 		case $v2ray_dynamic_port_end_input in
-		[1-9] | [1-9][0-9] | [1-9][0-9][0-9] | [1-9][0-9][0-9][0-9] | [1-5][0-9][0-9][0-9][0-9] | [1-6][0-5][0-5][0-3][0-5])
+		[1-9] | [1-9][0-9] | [1-9][0-9][0-9] | [1-9][0-9][0-9][0-9] | [1-5][0-9][0-9][0-9][0-9] | 6[0-4][0-9][0-9][0-9] | 65[0-4][0-9][0-9] | 655[0-3][0-5])
 
 			if [[ $v2ray_dynamic_port_end_input -le $v2ray_dynamic_port_start_input ]]; then
 				echo
@@ -1620,7 +1646,7 @@ change_domain() {
 		while :; do
 			echo
 			echo -e "请输入一个 $magenta正确的域名$none，一定一定一定要正确，不！能！出！错！"
-			read -p "(当前域名：$domain): " new_domain
+			read -p "$(echo -e "(当前域名: ${cyan}$domain$none):") " new_domain
 			[ -z "$new_domain" ] && error && continue
 			if [[ $new_domain == $domain ]]; then
 				echo
@@ -1837,13 +1863,15 @@ change_proxy_site_config() {
 
 }
 domain_check() {
-	test_domain=$(dig $new_domain +short)
-	# test_domain=$(ping $domain -c 1 | grep -oP -m1 "([\d.]+){3}\d")
+	# test_domain=$(dig $new_domain +short)
+	test_domain=$(ping $new_domain -c 1 | grep -oP -m1 "(\d+\.){3}\d+")
 	if [[ $test_domain != $ip ]]; then
 		echo
 		echo -e "$red 检测域名解析错误....$none"
 		echo
 		echo -e " 你的域名: $yellow$new_domain$none 未解析到: $cyan$ip$none"
+		echo
+		echo -e " 你的域名当前解析到: $cyan$test_domain$none"
 		echo
 		echo "备注...如果你的域名是使用 Cloudflare 解析的话..在 Status 那里点一下那图标..让它变灰"
 		echo
@@ -1981,6 +2009,34 @@ blocked_hosts() {
 		fi
 	done
 
+}
+change_v2ray_alterId() {
+	echo
+	while :; do
+		echo -e "请输入 ${yellow}alterId${none} 的数值 [${magenta}1-65535$none]"
+		read -p "$(echo -e "(当前数值是: ${cyan}$alterId$none):") " new_alterId
+		[[ -z $new_alterId ]] && error && continue
+		case $new_alterId in
+		[1-9] | [1-9][0-9] | [1-9][0-9][0-9] | [1-9][0-9][0-9][0-9] | [1-5][0-9][0-9][0-9][0-9] | 6[0-4][0-9][0-9][0-9] | 65[0-4][0-9][0-9] | 655[0-3][0-5])
+			echo
+			echo
+			echo -e "$yellow alterId = $cyan$new_alterId$none"
+			echo "----------------------------------------------------------------"
+			echo
+			pause
+			sed -i "45s/$alterId/$new_alterId/" $backup
+			alterId=$new_alterId
+			config
+			clear
+			view_v2ray_config_info
+			download_v2ray_config_ask
+			break
+			;;
+		*)
+			error
+			;;
+		esac
+	done
 }
 v2ray_service() {
 	while :; do
@@ -2209,7 +2265,7 @@ create_v2ray_config_text() {
 		echo
 		echo "用户ID (User ID / UUID) = ${v2ray_id}"
 		echo
-		echo "额外ID (Alter Id) = 233"
+		echo "额外ID (Alter Id) = ${alterId}"
 		echo
 		echo "传输协议 (Network) = ${network}"
 		echo
@@ -2236,7 +2292,7 @@ create_v2ray_config_text() {
 		echo
 		echo "用户ID (User ID / UUID) = ${v2ray_id}"
 		echo
-		echo "额外ID (Alter Id) = 233"
+		echo "额外ID (Alter Id) = ${alterId}"
 		echo
 		echo "传输协议 (Network) = ${network}"
 		echo
@@ -2330,7 +2386,7 @@ get_v2ray_config_qr_link() {
 		if [[ $ios_qr && $link3 ]]; then
 			echo -e "$yellow 适用于 Pepi / ShadowRay = $cyan${link3}$none"
 			echo
-			echo " 请在 Pepi / ShadowRay 配置界面将 Alter Id 设置为 233 (如果你使用 Pepi / ShadowRay)"
+			echo " 请在 Pepi / ShadowRay 配置界面将 Alter Id 设置为 ${alterId} (如果你使用 Pepi / ShadowRay)"
 			if [[ $v2ray_transport == 4 ]]; then
 				echo
 				echo " 请在 Pepi / ShadowRay 配置界面打开 TLS (Enable TLS) (如果你使用 Pepi / ShadowRay)"
@@ -2486,8 +2542,8 @@ open_port() {
 		iptables-save >/etc/iptables.rules.v4
 		ip6tables-save >/etc/iptables.rules.v6
 	else
-		service iptables save
-		service ip6tables save
+		service iptables save >/dev/null 2>&1
+		service ip6tables save >/dev/null 2>&1
 	fi
 
 }
@@ -2519,8 +2575,8 @@ del_port() {
 		iptables-save >/etc/iptables.rules.v4
 		ip6tables-save >/etc/iptables.rules.v6
 	else
-		service iptables save
-		service ip6tables save
+		service iptables save >/dev/null 2>&1
+		service ip6tables save >/dev/null 2>&1
 	fi
 }
 update() {
@@ -2580,6 +2636,8 @@ update_v2ray() {
 		do_service restart v2ray
 		echo
 		echo -e " $green 更新成功啦...当前 V2Ray 版本: ${cyan}$v2ray_latest_ver$none"
+		echo
+		echo -e " $yellow 温馨提示: 为了避免出现莫名其妙的问题...所以客户端 V2Ray 版本最好也是: ${cyan}$v2ray_latest_ver$none"
 		echo
 		rm -rf /tmp/v2ray
 	else
@@ -2718,7 +2776,7 @@ uninstall_v2ray() {
 		echo
 		echo "如果你觉得这个脚本有哪些地方不够好的话...请告诉我"
 		echo
-		echo "反馈问题: https://github.com/233boy/v2ray/issus"
+		echo "反馈问题: https://github.com/233boy/v2ray/issues"
 		echo
 
 	elif [[ $is_uninstall_v2ray ]]; then
@@ -2762,7 +2820,7 @@ uninstall_v2ray() {
 		echo
 		echo "如果你觉得这个脚本有哪些地方不够好的话...请告诉我"
 		echo
-		echo "反馈问题: https://github.com/233boy/v2ray/issus"
+		echo "反馈问题: https://github.com/233boy/v2ray/issues"
 		echo
 	fi
 }
@@ -3344,10 +3402,10 @@ config() {
 
 	fi
 
-	sed -i "8s/2333/$v2ray_port/; 14s/$old_id/$v2ray_id/" $v2ray_server_config
+	sed -i "8s/2333/$v2ray_port/; 14s/$old_id/$v2ray_id/; 16s/233/$alterId/" $v2ray_server_config
 
 	if [[ $v2ray_transport_opt -eq 4 || $v2ray_transport -eq 4 ]]; then
-		sed -i "s/233blog.com/$domain/; 22s/2333/443/; 25s/$old_id/$v2ray_id/" $v2ray_client_config
+		sed -i "s/233blog.com/$domain/; 22s/2333/443/; 25s/$old_id/$v2ray_id/; 26s/233/$alterId/" $v2ray_client_config
 		if [[ $is_ws_path ]]; then
 			sed -i "41s/233blog/$ws_path/" $v2ray_client_config
 		else
@@ -3355,7 +3413,7 @@ config() {
 		fi
 	else
 		[[ -z $ip ]] && get_ip
-		sed -i "s/233blog.com/$ip/; 22s/2333/$v2ray_port/; 25s/$old_id/$v2ray_id/" $v2ray_client_config
+		sed -i "s/233blog.com/$ip/; 22s/2333/$v2ray_port/; 25s/$old_id/$v2ray_id/; 26s/233/$alterId/" $v2ray_client_config
 	fi
 
 	zip -q -r -j --password "233blog.com" /etc/v2ray/233blog_v2ray.zip $v2ray_client_config
@@ -3365,6 +3423,15 @@ config() {
 		sed -i "31s/false/true/; 33s/$ssport/$new_ssport/; 35s/$sspass/$new_sspass/; 37s/$ssciphers/$new_ssciphers/" $backup
 	fi
 
+	if [[ $v2ray_port == "80" ]]; then
+		if [[ $cmd == "yum" ]]; then
+			[[ $(pgrep "httpd") ]] && systemctl stop httpd >/dev/null 2>&1
+			[[ $(command -v httpd) ]] && yum remove httpd -y >/dev/null 2>&1
+		else
+			[[ $(pgrep "apache2") ]] && service apache2 stop >/dev/null 2>&1
+			[[ $(command -v apache2) ]] && apt-get remove apache2* -y >/dev/null 2>&1
+		fi
+	fi
 	do_service restart v2ray
 }
 _boom_() {
@@ -3605,7 +3672,11 @@ Q | ssqr)
 	;;
 status)
 	echo
-	echo -e " V2Ray 状态: $v2ray_status"
+	if [[ $v2ray_transport == "4" && $caddy_installed ]]; then
+		echo -e " V2Ray 状态: $v2ray_status  /  Caddy 状态: $caddy_run_status"
+	else
+		echo -e " V2Ray 状态: $v2ray_status"
+	fi
 	echo
 	;;
 start)
@@ -3616,6 +3687,12 @@ stop)
 	;;
 restart)
 	restart_v2ray
+	;;
+reload)
+	config
+	clear
+	view_v2ray_config_info
+	download_v2ray_config_ask
 	;;
 log)
 	view_v2ray_log
@@ -3635,6 +3712,11 @@ un | uninstall)
 	;;
 233 | 2333 | 233boy | 233blog | 233blog.com)
 	_boom_
+	;;
+v | version)
+	echo
+	echo -e " 当前 V2Ray 版本: ${green}$v2ray_ver$none  /  当前 V2Ray 管理脚本版本: ${cyan}$_version$none"
+	echo
 	;;
 bbr)
 	other

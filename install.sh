@@ -78,7 +78,7 @@ v2ray_config() {
 	# clear
 	echo
 	while :; do
-		echo -e "请选择 "$yellow"V2Ray"$none" 传输协议 [${magenta}1-15$none]"
+		echo -e "请选择 "$yellow"V2Ray"$none" 传输协议 [${magenta}1-${#transport[*]}$none]"
 		echo
 		for ((i = 1; i <= ${#transport[*]}; i++)); do
 			Stream="${transport[$i - 1]}"
@@ -114,12 +114,13 @@ v2ray_config() {
 }
 v2ray_port_config() {
 	if [[ $v2ray_transport_opt -ne 4 && $v2ray_transport_opt -lt 9 ]]; then
+		local random=$(shuf -i20001-65535 -n1)
 		while :; do
 			echo -e "请输入 "$yellow"V2Ray"$none" 端口 ["$magenta"1-65535"$none"]"
-			read -p "$(echo -e "(默认端口: ${cyan}2333$none):")" v2ray_port
-			[ -z "$v2ray_port" ] && v2ray_port="2333"
+			read -p "$(echo -e "(默认端口: ${cyan}${random}$none):")" v2ray_port
+			[ -z "$v2ray_port" ] && v2ray_port=$random
 			case $v2ray_port in
-			[1-9] | [1-9][0-9] | [1-9][0-9][0-9] | [1-9][0-9][0-9][0-9] | [1-5][0-9][0-9][0-9][0-9] | [1-6][0-5][0-5][0-3][0-5])
+			[1-9] | [1-9][0-9] | [1-9][0-9][0-9] | [1-9][0-9][0-9][0-9] | [1-5][0-9][0-9][0-9][0-9] | 6[0-4][0-9][0-9][0-9] | 65[0-4][0-9][0-9] | 655[0-3][0-5])
 				echo
 				echo
 				echo -e "$yellow V2Ray 端口 = $cyan$v2ray_port$none"
@@ -147,13 +148,13 @@ v2ray_port_config() {
 v2ray_dynamic_port_config() {
 
 	echo
-
+	local random=$(shuf -i20001-65535 -n1)
 	while :; do
 		echo -e "请输入 "$yellow"V2Ray"$none" 端口 ["$magenta"1-65535"$none"]"
-		read -p "$(echo -e "(默认端口: ${cyan}2333$none):")" v2ray_port
-		[ -z "$v2ray_port" ] && v2ray_port="2333"
+		read -p "$(echo -e "(默认端口: ${cyan}${random}$none):")" v2ray_port
+		[ -z "$v2ray_port" ] && v2ray_port=$random
 		case $v2ray_port in
-		[1-9] | [1-9][0-9] | [1-9][0-9][0-9] | [1-9][0-9][0-9][0-9] | [1-5][0-9][0-9][0-9][0-9] | [1-6][0-5][0-5][0-3][0-5])
+		[1-9] | [1-9][0-9] | [1-9][0-9][0-9] | [1-9][0-9][0-9][0-9] | [1-5][0-9][0-9][0-9][0-9] | 6[0-4][0-9][0-9][0-9] | 65[0-4][0-9][0-9] | 655[0-3][0-5])
 			echo
 			echo
 			echo -e "$yellow V2Ray 端口 = $cyan$v2ray_port$none"
@@ -182,7 +183,7 @@ v2ray_dynamic_port_start() {
 			echo " 不能和 V2Ray 端口一毛一样...."
 			error
 			;;
-		[1-9] | [1-9][0-9] | [1-9][0-9][0-9] | [1-9][0-9][0-9][0-9] | [1-5][0-9][0-9][0-9][0-9] | [1-6][0-5][0-5][0-3][0-5])
+		[1-9] | [1-9][0-9] | [1-9][0-9][0-9] | [1-9][0-9][0-9][0-9] | [1-5][0-9][0-9][0-9][0-9] | 6[0-4][0-9][0-9][0-9] | 65[0-4][0-9][0-9] | 655[0-3][0-5])
 			echo
 			echo
 			echo -e "$yellow V2Ray 动态端口开始 = $cyan$v2ray_dynamic_port_start_input$none"
@@ -210,7 +211,7 @@ v2ray_dynamic_port_end() {
 		read -p "$(echo -e "(默认结束端口: ${cyan}20000$none):")" v2ray_dynamic_port_end_input
 		[ -z $v2ray_dynamic_port_end_input ] && v2ray_dynamic_port_end_input=20000
 		case $v2ray_dynamic_port_end_input in
-		[1-9] | [1-9][0-9] | [1-9][0-9][0-9] | [1-9][0-9][0-9][0-9] | [1-5][0-9][0-9][0-9][0-9] | [1-6][0-5][0-5][0-3][0-5])
+		[1-9] | [1-9][0-9] | [1-9][0-9][0-9] | [1-9][0-9][0-9][0-9] | [1-5][0-9][0-9][0-9][0-9] | 6[0-4][0-9][0-9][0-9] | 65[0-4][0-9][0-9] | 655[0-3][0-5])
 
 			if [[ $v2ray_dynamic_port_end_input -le $v2ray_dynamic_port_start_input ]]; then
 				echo
@@ -241,11 +242,11 @@ v2ray_dynamic_port_end() {
 ws_config() {
 
 	echo
-
+	local random=$(shuf -i20001-65535 -n1)
 	while :; do
 		echo -e "请输入 "$yellow"V2Ray"$none" 端口 ["$magenta"1-65535"$none"]，不能选择 "$magenta"80"$none" 或 "$magenta"443"$none" 端口"
-		read -p "$(echo -e "(默认端口: ${cyan}2333$none):")" v2ray_port
-		[ -z "$v2ray_port" ] && v2ray_port="2333"
+		read -p "$(echo -e "(默认端口: ${cyan}${random}$none):")" v2ray_port
+		[ -z "$v2ray_port" ] && v2ray_port=$random
 		case $v2ray_port in
 		80)
 			echo
@@ -257,7 +258,7 @@ ws_config() {
 			echo " ..都说了不能选择 433 端口了咯....."
 			error
 			;;
-		[1-9] | [1-9][0-9] | [1-9][0-9][0-9] | [1-9][0-9][0-9][0-9] | [1-5][0-9][0-9][0-9][0-9] | [1-6][0-5][0-5][0-3][0-5])
+		[1-9] | [1-9][0-9] | [1-9][0-9][0-9] | [1-9][0-9][0-9][0-9] | [1-5][0-9][0-9][0-9][0-9] | 6[0-4][0-9][0-9][0-9] | 65[0-4][0-9][0-9] | 655[0-3][0-5])
 			echo
 			echo
 			echo -e "$yellow V2Ray 端口 = $cyan$v2ray_port$none"
@@ -492,17 +493,18 @@ shadowsocks_config() {
 }
 
 shadowsocks_port_config() {
+	local random=$(shuf -i20001-65535 -n1)
 	while :; do
 		echo -e "请输入 "$yellow"Shadowsocks"$none" 端口 ["$magenta"1-65535"$none"]，不能和 "$yellow"V2Ray"$none" 端口相同"
-		read -p "$(echo -e "(默认端口: ${cyan}6666$none):") " ssport
-		[ -z "$ssport" ] && ssport="6666"
+		read -p "$(echo -e "(默认端口: ${cyan}${random}$none):") " ssport
+		[ -z "$ssport" ] && ssport=$random
 		case $ssport in
 		$v2ray_port)
 			echo
 			echo " 不能和 V2Ray 端口一毛一样...."
 			error
 			;;
-		[1-9] | [1-9][0-9] | [1-9][0-9][0-9] | [1-9][0-9][0-9][0-9] | [1-5][0-9][0-9][0-9][0-9] | [1-6][0-5][0-5][0-3][0-5])
+		[1-9] | [1-9][0-9] | [1-9][0-9][0-9] | [1-9][0-9][0-9][0-9] | [1-5][0-9][0-9][0-9][0-9] | 6[0-4][0-9][0-9][0-9] | 65[0-4][0-9][0-9] | 655[0-3][0-5])
 			if [[ $v2ray_transport_opt == "4" && $ssport == "80" ]] || [[ $v2ray_transport_opt == "4" && $ssport == "443" ]]; then
 				echo
 				echo -e "由于你选择了 "$green"WebSocket + TLS"$none" 传输协议."
@@ -567,7 +569,7 @@ shadowsocks_password_config() {
 shadowsocks_ciphers_config() {
 
 	while :; do
-		echo -e "请选择 "$yellow"Shadowsocks"$none" 加密协议 [${magenta}1-8$none]"
+		echo -e "请选择 "$yellow"Shadowsocks"$none" 加密协议 [${magenta}1-${#ciphers[*]}$none]"
 		for ((i = 1; i <= ${#ciphers[*]}; i++)); do
 			ciphers_show="${ciphers[$i - 1]}"
 			echo
@@ -660,18 +662,20 @@ install_info() {
 }
 
 domain_check() {
-	if [[ $cmd == "yum" ]]; then
-		yum install bind-utils -y
-	else
-		$cmd install dnsutils -y
-	fi
-	test_domain=$(dig $domain +short)
-	# test_domain=$(ping $domain -c 1 | grep -oP -m1 "([\d.]+){3}\d")
+	# if [[ $cmd == "yum" ]]; then
+	# 	yum install bind-utils -y
+	# else
+	# 	$cmd install dnsutils -y
+	# fi
+	# test_domain=$(dig $domain +short)
+	test_domain=$(ping $domain -c 1 | grep -oP -m1 "(\d+\.){3}\d+")
 	if [[ $test_domain != $ip ]]; then
 		echo
 		echo -e "$red 检测域名解析错误....$none"
 		echo
 		echo -e " 你的域名: $yellow$domain$none 未解析到: $cyan$ip$none"
+		echo
+		echo -e " 你的域名当前解析到: $cyan$test_domain$none"
 		echo
 		echo "备注...如果你的域名是使用 Cloudflare 解析的话..在 Status 那里点一下那图标..让它变灰"
 		echo
@@ -683,9 +687,9 @@ install_caddy() {
 	local caddy_tmp="/tmp/install_caddy/"
 	local caddy_tmp_file="/tmp/install_caddy/caddy.tar.gz"
 	if [[ $sys_bit == "i386" || $sys_bit == "i686" ]]; then
-		local caddy_download_link="https://caddyserver.com/download/linux/386"
+		local caddy_download_link="https://caddyserver.com/download/linux/386?license=personal"
 	elif [[ $sys_bit == "x86_64" ]]; then
-		local caddy_download_link="https://caddyserver.com/download/linux/amd64"
+		local caddy_download_link="https://caddyserver.com/download/linux/amd64?license=personal"
 	else
 		echo -e "$red 自动安装 Caddy 失败！不支持你的系统。$none" && exit 1
 	fi
@@ -703,18 +707,26 @@ install_caddy() {
 		echo -e "$red 安装 Caddy 出错！" && exit 1
 	fi
 
+	setcap CAP_NET_BIND_SERVICE=+eip /usr/local/bin/caddy
+
 	if [[ $systemd ]]; then
 		cp -f ${caddy_tmp}init/linux-systemd/caddy.service /lib/systemd/system/
-		sed -i "s/www-data/root/g" /lib/systemd/system/caddy.service
+		# sed -i "s/www-data/root/g" /lib/systemd/system/caddy.service
 		systemctl enable caddy
 	else
 		cp -f ${caddy_tmp}init/linux-sysvinit/caddy /etc/init.d/caddy
-		sed -i "s/www-data/root/g" /etc/init.d/caddy
+		# sed -i "s/www-data/root/g" /etc/init.d/caddy
 		chmod +x /etc/init.d/caddy
 		update-rc.d -f caddy defaults
 	fi
 
 	mkdir -p /etc/ssl/caddy
+
+	if [ -z "$(grep www-data /etc/passwd)" ]; then
+		useradd -M -s /usr/sbin/nologin www-data
+	fi
+	chown -R www-data.www-data /etc/ssl/caddy
+
 	mkdir -p /etc/caddy/
 	rm -rf $caddy_tmp
 	caddy_config
@@ -753,12 +765,32 @@ $domain {
 
 install_v2ray() {
 	$cmd update -y
+	# if [[ $cmd == "apt-get" ]]; then
+	# 	$cmd install -y lrzsz git zip unzip curl wget qrencode dnsutils
+	# else
+	# 	$cmd install -y lrzsz git zip unzip curl wget qrencode bind-utils iptables-services
+	# fi
 	if [[ $cmd == "apt-get" ]]; then
-		$cmd install -y lrzsz git zip unzip curl wget qrencode dnsutils
+		$cmd install -y lrzsz git zip unzip curl wget qrencode libcap2-bin
 	else
-		$cmd install -y lrzsz git zip unzip curl wget qrencode bind-utils iptables-services
+		$cmd install -y lrzsz git zip unzip curl wget qrencode libcap iptables-services
 	fi
 	ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+
+	if [[ $local_install ]]; then
+		if [[ ! -d $(pwd)/config ]]; then
+			echo
+			echo -e "$red 哎呀呀...安装失败了咯...$none"
+			echo
+			echo -e " 请确保你有完整的上传 233blog.com V2Ray 一键安装脚本 & 管理脚本到当前 ${green}$(pwd) $none目录下"
+			echo
+			exit 1
+		fi
+		mkdir -p /etc/v2ray/233boy/v2ray
+		cp -rf $(pwd)/* /etc/v2ray/233boy/v2ray
+	else
+		git clone https://github.com/233boy/v2ray /etc/v2ray/233boy/v2ray
+	fi
 
 	[ -d /tmp/v2ray ] && rm -rf /tmp/v2ray
 	mkdir -p /tmp/v2ray
@@ -794,13 +826,6 @@ install_v2ray() {
 	mkdir -p /etc/v2ray
 
 	rm -rf /tmp/v2ray
-
-	if [[ $local_install ]]; then
-		mkdir -p /etc/v2ray/233boy/v2ray
-		cp -rf $(pwd)/* /etc/v2ray/233boy/v2ray
-	else
-		git clone https://github.com/233boy/v2ray /etc/v2ray/233boy/v2ray
-	fi
 
 	if [ $shadowsocks ]; then
 		if [[ $is_blocked_ad ]]; then
@@ -997,8 +1022,8 @@ open_port() {
 		iptables-save >/etc/iptables.rules.v4
 		ip6tables-save >/etc/iptables.rules.v6
 	else
-		service iptables save
-		service ip6tables save
+		service iptables save >/dev/null 2>&1
+		service ip6tables save >/dev/null 2>&1
 	fi
 }
 del_port() {
@@ -1034,8 +1059,8 @@ del_port() {
 		iptables-save >/etc/iptables.rules.v4
 		ip6tables-save >/etc/iptables.rules.v6
 	else
-		service iptables save
-		service ip6tables save
+		service iptables save >/dev/null 2>&1
+		service ip6tables save >/dev/null 2>&1
 	fi
 
 }
@@ -1587,7 +1612,7 @@ get_qr_link() {
 
 }
 install() {
-	if [[ -f /usr/bin/v2ray/v2ray && -f /etc/v2ray/config.json ]] && [[ -f $backup && -f /lib/systemd/system/v2ray.service ]]; then
+	if [[ -f /usr/bin/v2ray/v2ray && -f /etc/v2ray/config.json ]] && [[ -f $backup && -d /etc/v2ray/233boy/v2ray ]]; then
 		echo
 		echo " 大佬...你已经安装 V2Ray 啦...无需重新安装"
 		echo
@@ -1602,6 +1627,15 @@ install() {
 	try_enable_bbr
 	[ $caddy ] && domain_check
 	install_v2ray
+	if [[ $caddy || $v2ray_port == "80" ]]; then
+		if [[ $cmd == "yum" ]]; then
+			[[ $(pgrep "httpd") ]] && systemctl stop httpd
+			[[ $(command -v httpd) ]] && yum remove httpd -y
+		else
+			[[ $(pgrep "apache2") ]] && service apache2 stop
+			[[ $(command -v apache2) ]] && apt-get remove apache2* -y
+		fi
+	fi
 	[ $caddy ] && install_caddy
 	get_ip
 	config
@@ -1610,7 +1644,7 @@ install() {
 }
 uninstall() {
 
-	if [[ -f /usr/bin/v2ray/v2ray && -f /etc/v2ray/config.json ]] && [[ -f $backup ]]; then
+	if [[ -f /usr/bin/v2ray/v2ray && -f /etc/v2ray/config.json ]] && [[ -f $backup && -d /etc/v2ray/233boy/v2ray ]]; then
 		while :; do
 			echo
 			read -p "$(echo -e "是否卸载 ${yellow}V2Ray$none [${magenta}Y/N$none]:")" uninstall_v2ray_ask
